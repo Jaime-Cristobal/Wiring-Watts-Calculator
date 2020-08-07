@@ -1,6 +1,25 @@
+"""
+This program calculate the AC net power rating and breaker sizes required for
+N amount of solar panels placed on a roof.
+
+The only dependency needed is xlwt to output an excel file.
+Simply go on the terminal or Python command line and invoke the command:
+    pip install xlwt
+"""
+__author__ = "Jaime Cristobal"
+__date__ = "8/4/2020"
+
 import xlwt
 
 
+"""
+Calculates the net total AC rating of the entire solar 
+panel system on the roof.
+
+:param amount - N amount of solar panels
+
+:returns amnt_of_panels - list of N panels, power - AC power rating
+"""
 def calc_pow(amount):
     amnt_of_panels = []
     power = []
@@ -18,6 +37,15 @@ def calc_pow(amount):
     return amnt_of_panels, power
 
 
+"""
+Calculates the current statistics of a solar array.
+
+:param amount - N amount of solar panels
+
+:returns breaker_curr - current that will run to the breaker,
+         ocpd - breaker size,
+         cont_current - continuous current from modules to main service panel
+"""
 def calc_current(amount):
     breaker_curr = []
     ocpd = []
@@ -41,13 +69,16 @@ def calc_current(amount):
     return breaker_curr, ocpd, cont_curr
 
 
+"""
+
+"""
 def wire_calc(temperature, ocpd, breaker, cont_curr):
     awg_10 = 40
     awg_8 = 55
     wires_used = []
     conductor_used = []
     recc_breaker = []
-    max_temp = temperature + 41         # allow a 43 degrees of allowance from the area's record high
+    max_temp = temperature + 41         # allow a 41 degrees of allowance from the area's record high
 
     conductor = 0.82
     if 123 <= max_temp <= 131:
