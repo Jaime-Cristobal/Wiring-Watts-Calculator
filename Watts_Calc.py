@@ -11,27 +11,27 @@ import enum
 
 
 """
-These are the mpacities of copper conductor at a temperature rating of 
+These are the ampacities of copper conductor at a temperature rating of 
 60, 75, and 90 degrees as specified by the 2002 National Electrical Code (NEC).
 
 The wire sizes only taken into account here are AWG 10, 8, and 6.
 """
 class Conductor90(enum.Enum):
-    AWG_10 = 40
-    AWG_8 = 55
-    AWG_6 = 75
+    AWG_10 = 40.0
+    AWG_8 = 55.0
+    AWG_6 = 75.0
 
 
 class Conductor75(enum.Enum):
-    AWG_10 = 35
-    AWG_8 = 50
-    AWG_6 = 65
+    AWG_10 = 35.0
+    AWG_8 = 50.0
+    AWG_6 = 65.0
 
 
 class Conductor60(enum.Enum):
-    AWG_10 = 30
-    AWG_8 = 40
-    AWG_6 = 55
+    AWG_10 = 30.0
+    AWG_8 = 40.0
+    AWG_6 = 55.0
 
 
 def calc_pow(amount):
@@ -39,9 +39,9 @@ def calc_pow(amount):
     Calculates the net total AC rating of the entire solar
     panel system on the roof.
 
-    :param amount - N amount of solar panels
+    :param amount: N amount of solar panels
 
-    :returns amnt_of_panels - list of N panels, power - AC power rating
+    :returns amnt_of_panels: list of N panels, power - AC power rating
     """
     amnt_of_panels = []
     power = []
@@ -63,11 +63,11 @@ def calc_current(amount):
     """
     Calculates the current statistics of a solar array.
 
-    :param amount - N amount of solar panels
+    :param amount: N amount of solar panels
 
-    :returns breaker_curr - current that will run to the breaker,
-             ocpd - breaker size,
-             cont_current - continuous current from modules to main service panel
+    :returns breaker_curr: current that will run to the breaker,
+    :returns ocpd: breaker size,
+    :returns cont_current: continuous current from modules to main service panel
     """
     breaker_curr = []
     ocpd = []
@@ -91,12 +91,20 @@ def calc_current(amount):
     return breaker_curr, ocpd, cont_curr
 
 
-def wire_calc(temperature, ocpd, breaker, cont_curr):
+def wire_calc(temperature, breaker_size, ocpd, cont_curr):
     """
+    Provides wire calculations such as a AWG wire sizes to be used, conductor factor
+    rating, temperature factor for the wire, and the recommended breaker to be used
+    so the entire house's electrical wiring doesn't blow in case something happens.
 
+    :param temperature: MAX temperature in the area
+    :param breaker_size: breaker size as calculated using the OCPD
+    :param ocpd: the OCPD current of the array
+    :param cont_curr: continuous current of the array
+    :return: a set of list of the wire temperature factor rating, conductor factor rating,
+             recommended breaker sizes, and wire AWG size used.
     """
-    awg_10 = 40
-    awg_8 = 55
+    awg = []
     wires_used = []
     conductor_used = []
     recc_breaker = []
@@ -112,33 +120,31 @@ def wire_calc(temperature, ocpd, breaker, cont_curr):
     elif 159 <= max_temp <= 176:
         conductor = 0.41
 
-    derate_awg_10 = awg_10 * conductor * 1.0
-    derate_awg_8 = awg_8 * conductor * 1.0
+    derate_awg_10 = float(Conductor90.AWG_10.value) * conductor * 1.0
+    derate_awg_8 = float(Conductor90.AWG_8.value) * conductor * 1.0
+    derate_awg_6 = float(Conductor90.AWG_6.value) * conductor * 1.0
 
-    for i, j, k in zip(cont_curr, breaker, ocpd):
-        wire = awg_10
-        derate = wire * conductor * 1.0
-        need_new_brkr = False
+    for i, j, k in zip(cont_curr, ocpd, breaker_size):
+        wire = Conductor90.AWG_10
+        #need_new_brkr = False
 
         # check the derate factor against the continuous, breaker, and OCPD current.
-        check_awg_10 = True if derate_awg_10 > i and derate_awg_10 > j and derate_awg_10 > k else False
-        check_awg_8 = True if derate_awg_8 > i and derate_awg_8 > j and derate_awg_8 > k else False
-        print("Temperature " + str(temperature))
+        check_awg_10 = check_awg(derate_awg_10, i, j, k)
+        check_awg_8 = check_awg(derate_awg_8, i, j, k)
+        check_awg_6 = check_awg(derate_awg_6, i, j, k)
         if check_awg_10:
-            print(i)
-            print("Using AWG 10")
-            wire = awg_10
+            awg.append(10)
+            wire = Conductor90.AWG_10.value
         elif check_awg_8:
-            print(i)
-            print("Using AWG 8")
-            wire = awg_8
-        else:
-            print("Cont curr: " + str(i) + " Breaker Size: " + str(j) + " OCPD: " + str(k))
-            print("Derate 8: " + str(derate_awg_8))
-            print("Derate 10: " + str(derate_awg_10))
-            print("ERROR")
-            need_new_brkr = True
+            awg.append(8)
+            wire = Conductor90.AWG_8.value
+        elif check_awg_6:
+            awg.append(6)
+            wire = Conductor90.AWG_6.value
+        #else: # part of the recommended breaker logic below (WILL NOT BE USED)
+        #    need_new_brkr = True
 
+        ### THIS FEATURE WILL NOT USED FOR NOW
         """
         # if the derating factor check failed and could not find a suitable wire, we change the breakers
         if need_new_brkr:
@@ -153,21 +159,27 @@ def wire_calc(temperature, ocpd, breaker, cont_curr):
                     break
 
                 new_brkr += 5
-                check_awg_10 = True if derate_awg_10 > new_brkr else False
-                check_awg_8 = True if derate_awg_8 * 1.0 > new_brkr else False
+                check_awg_10 = check_awg(derate_awg_10, i, j, new_brkr)
+                check_awg_8 = check_awg(derate_awg_8, i, j, new_brkr)
+                check_awg_6 = check_awg(derate_awg_6, i, j, new_brkr)
                 if check_awg_10:
-                    wire = awg_10
-                    break
+                    wire = Conductor90.AWG_10.value
                 elif check_awg_8:
-                    wire = awg_8
-                    break
+                    wire = Conductor90.AWG_8.value
+                elif check_awg_6:
+                    wire = Conductor90.AWG_6.value
                 loop_check += 1
             recc_breaker.append(new_brkr)
         else:
+            recc_breaker.append(k)
         """
-        recc_breaker.append(k)
 
+        recc_breaker.append(k)
         conductor_used.append(conductor)
         wires_used.append(wire)
 
-    return wires_used, conductor_used, recc_breaker
+    return wires_used, conductor_used, recc_breaker, awg
+
+
+def check_awg(derate, cont, ocpd, breaker_size):
+    return derate > cont and derate > ocpd and derate > breaker_size
