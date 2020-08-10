@@ -1,8 +1,7 @@
 # Wiring-Watts-Calculator
 <p align="center">
-  Calculates the power wattage required for solar panel systems.
+  Calculates the power wattage required for solar panel systems. Can also calculate the required wire sizes for N amount of modules in an array.
   <br>
-  Capabilities to produce wire usage data is currently in progress. 
   <br>
   <br>
   <img width="596" height="445" src="https://github.com/Jaime-Cristobal/Wiring-Watts-Calculator/blob/master/Misc/table_1.png">
