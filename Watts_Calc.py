@@ -34,12 +34,14 @@ class Conductor60(enum.Enum):
     AWG_6 = 55.0
 
 
-def calc_pow(amount):
+def calc_pow(amount, cec_rating, efficiency_rating):
     """
     Calculates the net total AC rating of the entire solar
     panel system on the roof.
 
     :param amount: N amount of solar panels
+    :param cec_rating: PTC AC power rating of the solar module on the roof.
+    :param efficiency_rating: Power conversion rating of a microinverter.
 
     :returns amnt_of_panels: list of N panels, power - AC power rating
     """
@@ -52,7 +54,7 @@ def calc_pow(amount):
         amnt_of_panels.append(panels)
 
         # append net power rating per amount of panels
-        total_pow = panels * 301.7 * (97 / 100)
+        total_pow = panels * cec_rating * efficiency_rating
         pow_in_kw = total_pow / 1000
         power.append(float("%.3f" % pow_in_kw))
 

@@ -35,7 +35,7 @@ def write_auto_col_sizing(exc_sheet, col, col_name, style, text_offset=0):
 def main():
     total_system_amount = 25
     amount = 16
-    amnt_of_panels, power = calc_pow(total_system_amount)
+    amnt_of_panels, power = calc_pow(total_system_amount, 289.3, 0.97)
     breaker_curr, ocpd, cont_curr = calc_current(amount)
 
     # try to take this from another excel or json file
